@@ -1,27 +1,13 @@
 #include "main.h"
-
-#define FRONT_RIGHT_PORT 19
-#define MIDDLE_RIGHT_PORT 18
-#define BACK_RIGHT_PORT 20
-#define FRONT_LEFT_PORT 14
-#define MIDDLE_LEFT_PORT 12
-#define BACK_LEFT_PORT 13
+#include "./lib/drive.h"
 
 #define CATA_RIGHT_PORT 10
 #define CATA_LEFT_PORT 1
-
 #define INTAKE_PORT 15
 
 using pros::Motor;
 
-
 pros::Controller con(pros::E_CONTROLLER_MASTER);
-pros::Motor frontRight(FRONT_RIGHT_PORT, MOTOR_GEAR_BLUE, true);
-pros::Motor middleRight(MIDDLE_RIGHT_PORT, MOTOR_GEAR_BLUE, true);
-pros::Motor backRight(BACK_RIGHT_PORT, MOTOR_GEAR_BLUE, true);
-pros::Motor frontLeft(FRONT_LEFT_PORT, MOTOR_GEAR_BLUE);
-pros::Motor middleLeft(MIDDLE_LEFT_PORT, MOTOR_GEAR_BLUE);
-pros::Motor backLeft(BACK_LEFT_PORT, MOTOR_GEAR_BLUE);
 pros::Motor cataRight(CATA_RIGHT_PORT, MOTOR_GEAR_GREEN);
 pros::Motor cataLeft(CATA_LEFT_PORT, MOTOR_GEAR_GREEN, true);
 pros::Motor intake(INTAKE_PORT, MOTOR_GEAR_GREEN);
@@ -34,12 +20,9 @@ pros::Motor intake(INTAKE_PORT, MOTOR_GEAR_GREEN);
 // pros::GPS gps(GPS_PORT);
 // pros::ADIDigitalIn limitSwitch(LIMIT_SWITCH_PORT);
 
-
 bool cataLimit = false;
 bool disableAutoCata = false;
 int invertRoller = -1;
-
-
 
 /**
  * A callback function for LLEMU's center button.
@@ -57,74 +40,6 @@ void on_center_button() {
 		pros::lcd::clear_line(2);
 	}
 }
-
-void brake(pros::motor_brake_mode_e_t brakeMode=pros::E_MOTOR_BRAKE_COAST) {
-	frontRight.set_brake_mode(brakeMode);
-	frontLeft.set_brake_mode(brakeMode);
-	backRight.set_brake_mode(brakeMode);
-	backLeft.set_brake_mode(brakeMode);
-	frontRight.brake();
-	frontLeft.brake();
-	backRight.brake();
-	backLeft.brake();
-}
-
-void driveBackward(double targetDistance, double power, pros::motor_brake_mode_e_t brakeMode=pros::E_MOTOR_BRAKE_COAST) {
-		frontRight.move_relative(targetDistance, -power*200); // power is the percentage of power out of a 200 rpm motor
-		frontLeft.move_relative(targetDistance, -power*200);
-		backRight.move_relative(targetDistance, -power*200);
-		backLeft.move_relative(targetDistance, -power*200);
-		brake(brakeMode);
-	}
-
-void ForwardDrive(double targetDistance, double power=1, pros::motor_brake_mode_e_t brakeMode=pros::E_MOTOR_BRAKE_COAST) {
-    while( backLeft.get_position() < targetDistance && backRight.get_position() < targetDistance) {
-        frontRight.move_velocity(600*power); // power is the percentage of power out of a 600 rpm motor
-        frontLeft.move_velocity(600*power);
-        backRight.move_velocity(600*power);
-        backLeft.move_velocity(600*power);
-    }
-    brake(brakeMode);
-    pros::delay(200);
-}
-
-void BackwardDrive(double targetDistance, double power=1, pros::motor_brake_mode_e_t brakeMode=pros::E_MOTOR_BRAKE_COAST) {
-    while( backLeft.get_position() > -targetDistance && backRight.get_position() > -targetDistance) {
-        frontRight.move_velocity(-600*power); // power is the percentage of power out of a 600 rpm motor
-        frontLeft.move_velocity(-600*power);
-        backRight.move_velocity(-600*power);
-        backLeft.move_velocity(-600*power);
-    }
-    brake(brakeMode);
-    pros::delay(200);
-}
-
-void ResetDriveEncoders(){
-    frontLeft.tare_position();
-    frontRight.tare_position();
-    backRight.tare_position();
-    backLeft.tare_position();
-}
-
-// void turnRight(double targetAngle, double power=.25, pros::motor_brake_mode_e_t brakeMode=pros::E_MOTOR_BRAKE_COAST) {
-// 	while (inertial.get_rotation() < targetAngle - 2 || inertial.get_rotation() > targetAngle + 2) {
-// 		frontRight.move_relative(targetAngle, -power*200); // power is the percentage of power out of a 200 rpm motor
-// 		frontLeft.move_relative(targetAngle, power*200);
-// 		backRight.move_relative(targetAngle, -power*200);
-// 		backLeft.move_relative(targetAngle, power*200);
-// 	}
-// 	brake(brakeMode);
-// }
-
-// void turnLeft(double targetAngle, double power=.25, pros::motor_brake_mode_e_t brakeMode=pros::E_MOTOR_BRAKE_COAST) {
-// 	while (inertial.get_rotation() < targetAngle - 2 || inertial.get_rotation() > targetAngle + 2) {
-// 		frontRight.move_relative(targetAngle, power*200); // power is the percentage of power out of a 200 rpm motor
-// 		frontLeft.move_relative(targetAngle, -power*200);
-// 		backRight.move_relative(targetAngle, power*200);
-// 		backLeft.move_relative(targetAngle, -power*200);
-// 	}
-// 	brake(brakeMode);
-// }
 
 int GetGearsetRPM(const Motor& m) {
 	if( m.get_gearing() == MOTOR_GEAR_BLUE ) { return 600; }
